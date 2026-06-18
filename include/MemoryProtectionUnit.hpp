@@ -1,5 +1,5 @@
-#ifndef MEMORY_PROTECTION_UNIT_H
-#define MEMORY_PROTECTION_UNIT_H
+#ifndef MEMORY_PROTECTION_UNIT_HPP
+#define MEMORY_PROTECTION_UNIT_HPP
 
 #include <cstdint>
 #include <unordered_map>

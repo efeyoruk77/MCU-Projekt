@@ -1,4 +1,4 @@
-#include "../include/MemoryProtectionUnit.h"
+#include "../include/MemoryProtectionUnit.hpp"
 
     uint8_t MemoryProtectionUnit::getOwner(uint32_t address) const{
         uint32_t block = address / block_size;

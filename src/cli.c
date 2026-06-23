@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-int main(int argc, char** argv){
+int parse_cli(int argc, char** argv){
     int c;
     char* helpMessage = "What even is C about"; 
     uint32_t latency = 1;
@@ -42,6 +42,7 @@ int main(int argc, char** argv){
 
                 char *endptr; 
                 cycles = strtoul(optarg, &endptr, 0);
+                printf("Parsed cycles: %u\n", cycles);
                 if(optarg == endptr || *endptr != '\0'){
                     fprintf(stderr, "Error: Invalid number of cycles.\n");
                     exit(1);
@@ -68,6 +69,7 @@ int main(int argc, char** argv){
 
                 char *endptr;
                 latency = strtoul(optarg, &endptr, 0);
+                printf("Parsed latency: %u\n", latency);
                 if(optarg == endptr || *endptr != '\0'){
                     fprintf(stderr, "Invalid latency!\n");
                     exit(1);
@@ -87,6 +89,7 @@ int main(int argc, char** argv){
 
                 char *endptr;
                 rom_size = strtoul(optarg, &endptr, 0);
+                printf("Parsed rom size: %u\n", rom_size);
                 if(optarg == endptr || *endptr != '\0'){
                     fprintf(stderr, "Invalid rom size!\n");
                     exit(1);
@@ -110,6 +113,7 @@ int main(int argc, char** argv){
                 }
                 char *endptr;
                 block_size = strtoul(optarg, &endptr, 0);
+                printf("Parsed block_size: %u\n", block_size);
                 if(optarg == endptr || *endptr != '\0'){
                     fprintf(stderr, "Invalid block size!\n");
                     exit(1);
@@ -126,10 +130,20 @@ int main(int argc, char** argv){
                 fprintf(stderr, "Invalid arguments! Use -h or --help for more information.\n");
                 exit(1);
         }
-
-        //TODO: Create a tracefile if tf is set!!!
-        
-        //TODO: parse the requirements file!!!
+    }
+    //TODO: Create a tracefile if tf is set!!!   
+    //TODO: parse the requirements file!!!
+    char *request_file;
+    if(optind < argc){
+        request_file = argv[optind];
+        printf("Request file: %s\n", request_file);
+        if(optind + 1 < argc){
+            fprintf(stderr, "Error: Too many positional arguments. Expected only the request file!");
+            exit(1);
+        }
+    }else{
+        fprintf(stderr, "Request file not given!");
+        exit(1);
     }
     return 0;
 }

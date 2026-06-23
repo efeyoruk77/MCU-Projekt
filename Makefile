@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -std=c++14 -Wall -Wextra -O2
 
 SYSTEMC_INC = $(SYSTEMC_HOME)/include
-SYSTEMC_LIB = $(SYSTEMC_HOME)/lib-linux64
+SYSTEMC_LIB = $(SYSTEMC_HOME)/lib
 
 SRC_DIR = src
 INC_DIR = include
@@ -17,7 +17,6 @@ OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 TARGET = project
 
 all: $(TARGET)
-project: $(TARGET)
 $(TARGET): $(OBJS)
 		$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 

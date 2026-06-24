@@ -4,13 +4,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-int parse_cli(int argc, char** argv){
+#include "../include/types.hpp"
+struct Parameters parse_cli(int argc, char** argv){
     int c;
     char* helpMessage = "What even is C about"; 
     uint32_t latency = 1;
     uint32_t cycles = 1;
     uint32_t rom_size = 0x100000;
     uint32_t block_size = 0x1000;
+
+    Parameters parameters;
 
     char* tracePath = NULL; 
     char* romContent_path = NULL;
@@ -145,5 +148,12 @@ int parse_cli(int argc, char** argv){
         fprintf(stderr, "Request file not given!");
         exit(1);
     }
-    return 0;
+    parameters.cycles = cycles;
+    parameters.tracefile = tracePath;
+    parameters.latencyRom = latency;
+    parameters.romSize = rom_size;
+    parameters.blockSize = block_size;
+    //romContent
+    //requests
+    return parameters   ;
 }

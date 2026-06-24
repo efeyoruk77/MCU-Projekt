@@ -4,12 +4,6 @@
 #include "cli.c"
 using namespace sc_core;
 
-int sc_main(int argc, char *argv[]){
-    //TODO: Implement the memory controller and
-    std::cout << parse_cli(argc, argv) << std::endl;
-    return 0;
-}
-
 struct Result runSimulation (
     uint32_t cycles,
     const char* tracefile,
@@ -20,5 +14,15 @@ struct Result runSimulation (
     uint32_t numRequests,
     struct Request* requests
 ){
-    
+    Result res;
+    //TODO
+    return res;
 }
+
+int sc_main(int argc, char *argv[]){
+    //TODO: Implement the memory controller and
+    Parameters parameters = parse_cli(argc, argv);
+    Result res = runSimulation(parameters.cycles, parameters.tracefile, parameters.latencyRom, parameters.romSize, parameters.blockSize, parameters.romContent, parameters.numRequests, parameters.requests);
+    return 0;
+}
+

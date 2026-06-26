@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++14 -Wall -Wextra -O2
+CXXFLAGS = -std=c++14 -Wall -Wextra -O2 -D_POSIX_C_SOURCE=200809L
 
 SYSTEMC_INC = $(SYSTEMC_HOME)/include
 SYSTEMC_LIB = $(SYSTEMC_HOME)/lib

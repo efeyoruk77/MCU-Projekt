@@ -24,18 +24,11 @@ public:
 
     SC_HAS_PROCESS(ReadOnlyMemory);
 
-    ReadOnlyMemory(sc_module_name name, uint32_t latency, uint32_t size, const uint32_t* data, uint32_t dataCount) : sc_module(name), latency(latency), size(size), memory(size/4), counter(0)
+    ReadOnlyMemory(sc_module_name name, uint32_t latency, uint32_t size, const uint32_t* data) : sc_module(name), latency(latency), size(size), memory(size/4), counter(0)
     {   
-        if(dataCount > size/4){
-            std::cerr << "Error: ROM size not enough for the given ROM-content!";
-            exit(1);
-        }
-        for(uint32_t i = 0; i < dataCount; i++){
+        
+        for(uint32_t i = 0; i < (size / 4); i++){
             memory[i] = data[i];
-        }
-
-        for (uint32_t i = dataCount; i < (size/4); i++) {
-            memory[i] = 0;
         }
 
         SC_THREAD(readMethod);

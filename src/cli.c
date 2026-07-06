@@ -4,7 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <sys/types.h>
+
 #include "../include/types.hpp"
+
+uint32_t* parseRom(const char* file, uint32_t rom_size){
+    
+}
+
 struct Parameters parse_cli(int argc, char** argv){
     int c;
     char* helpMessage = "What even is C about"; 
@@ -136,6 +143,12 @@ struct Parameters parse_cli(int argc, char** argv){
     }
     //TODO: Create a tracefile if tf is set!!!   
     //TODO: parse the requirements file!!!
+    if(romContent_path != NULL){
+        parameters.romContent = parseRom(romContent_path, rom_size);
+    }else{
+        fprintf(stderr, "ROM Content file is missing!\n");
+    }
+
     char *request_file;
     if(optind < argc){
         request_file = argv[optind];
@@ -153,7 +166,6 @@ struct Parameters parse_cli(int argc, char** argv){
     parameters.latencyRom = latency;
     parameters.romSize = rom_size;
     parameters.blockSize = block_size;
-    //romContent
     //requests
     return parameters   ;
 }

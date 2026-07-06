@@ -23,10 +23,10 @@ SC_MODULE(MEMORY_CONTROLLER){
     MemoryProtectionUnit memory_protection_unit;
     SC_HAS_PROCESS(MEMORY_CONTROLLER);
 
-    MEMORY_CONTROLLER(sc_module_name name, uint32_t rom_latency, uint32_t rom_size, uint32_t block_size, const uint32_t* rom_content) :
-    sc_module(name), rom("ROM", rom_latency, rom_size, rom_content), memory_protection_unit("memory_protection_unit", block_size){
+    MEMORY_CONTROLLER(sc_module_name name, uint32_t latency_rom, uint32_t rom_size, uint32_t block_size, const uint32_t* rom_content) :
+    sc_module(name), rom("ROM", latency_rom, rom_size, rom_content), memory_protection_unit("memory_protection_unit", block_size){
         
-        
+
 
     }
 
@@ -35,7 +35,7 @@ SC_MODULE(MEMORY_CONTROLLER){
     }
 
     void setRomAt(uint32_t address, uint8_t data){
-
+        rom.setRomAt(address, data);
     }
 
 };

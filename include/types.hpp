@@ -27,4 +27,15 @@ struct Parameters{
     struct Request* requests;
 };
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
+struct Parameters parse_cli(int argc, char** argv);
+uint32_t* parseRom(const char* file, uint32_t rom_size);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

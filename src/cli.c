@@ -50,6 +50,45 @@ static char* read_file(const char* path){
         return string;
 }
 
+// helper fonksiyon 
+static char* kes(char* s){
+    while(isspace((unsigned char) *s)) s++;
+    char* end = s + strlen(s);
+    while(end > s && isspace((unsigned char) end[-1])) end--;
+    *end = '\0';
+
+
+    return s;
+}
+
+
+static uint32_t parseUint32Field(const char* field, const char* fieldName){
+
+    if(*field == '-'){
+        fprintf(stderr, "%s can't be negative!\n", fieldName);
+        exit(1);
+    }
+
+    errno = 0;
+    char* son;
+
+    int taban = (field[0] == '0' && (field[1] == 'x' || field[1] == 'X')) ? 16 : 10;
+
+    unsigned long value = strtoul(field, &son, taban);
+
+    if(son == field || *son != '\0'){
+        fprintf(stderr, "Invalid value for %s: \"%s\"\n", fieldName, field);
+        exit(1);
+    }
+
+    if(errno == ERANGE || value > UINT32_MAX){
+        fprintf(stderr, "%s exceeds 32 bits: \"%s\"\n", fieldName, field);
+        exit(1);
+    }
+
+    return (uint32_t) value;
+}
+
 uint32_t* parseRom(const char* path, uint32_t rom_size){
     uint32_t capacity = rom_size / 4;
     uint32_t* rom = (uint32_t*)calloc(capacity, sizeof(uint32_t));
@@ -162,8 +201,30 @@ struct Request* parseRequest(const char* path, uint32_t* numRequests){
             trimmed++;
         }
 
-        if(*trimmed != '\0'){
-            printf("Line %u: \"%s\"\n", count, line);
+               if(*trimmed != '\0'){
+            char* fields[5];
+            char* cursor = trimmed;
+            for(int i = 0; i < 4; i++){
+                char* comma = strchr(cursor, ',');
+                if(comma == NULL){
+                    fprintf(stderr, "Invalid request line %u: expected 5 fields\n", count);
+                    free(content);
+                    exit(1);
+                }
+                *comma = '\0';
+                fields[i] = kes(cursor);
+                cursor = comma + 1;
+            }
+            if(strchr(cursor, ',') != NULL){
+                fprintf(stderr, "Invalid request line %u: too many fields\n", count);
+                free(content);
+                exit(1);
+            }
+            fields[4] = kes(cursor);
+
+            printf("Line %u: Type=\"%s\" Addr=\"%s\" Data=\"%s\" User=\"%s\" Wide=\"%s\"\n",
+                   count, fields[0], fields[1], fields[2], fields[3], fields[4]);
+
             count++;
         }
 

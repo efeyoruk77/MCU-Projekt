@@ -16,7 +16,7 @@
         uint32_t end = (address + length -1) / block_size;
 
         if(user != 0 && user != 255){
-            for(int i = start; i <= end; i++){
+            for(uint32_t i = start; i <= end; i++){
                 if(owner_map.count(i) != 0){
                     if(owner_map.at(i) != user){
                         return false;
@@ -25,7 +25,7 @@
             }
         }
 
-        for(int i = start; i <= end; i++){
+        for(uint32_t i = start; i <= end; i++){
             if(user == 255){
                 owner_map.erase(i);
             }

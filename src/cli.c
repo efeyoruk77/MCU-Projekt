@@ -50,19 +50,15 @@ static char* read_file(const char* path){
         return string;
 }
 
-// helper fonksiyon 
 static char* split(char* s){
     while(isspace((unsigned char) *s)) s++;
     char* end = s + strlen(s);
     while(end > s && isspace((unsigned char) end[-1])) end--;
     *end = '\0';
-
-
     return s;
 }
 
 static uint32_t parseUint32Field(const char* field, const char* fieldName){
-
     if(*field == '-'){
         fprintf(stderr, "%s can't be negative!\n", fieldName);
         exit(1);
@@ -70,9 +66,7 @@ static uint32_t parseUint32Field(const char* field, const char* fieldName){
 
     errno = 0;
     char* endptr;
-
     int base = (field[0] == '0' && (field[1] == 'x' || field[1] == 'X')) ? 16 : 10;
-
     unsigned long value = strtoul(field, &endptr, base);
 
     if(endptr == field || *endptr != '\0'){
@@ -84,7 +78,6 @@ static uint32_t parseUint32Field(const char* field, const char* fieldName){
         fprintf(stderr, "%s exceeds 32 bits: \"%s\"\n", fieldName, field);
         exit(1);
     }
-
     return (uint32_t) value;
 }
 

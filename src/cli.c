@@ -88,34 +88,6 @@ static uint32_t parseUint32Field(const char* field, const char* fieldName){
     return (uint32_t) value;
 }
 
-
-static uint32_t parseUint32Field(const char* field, const char* fieldName){
-
-    if(*field == '-'){
-        fprintf(stderr, "%s can't be negative!\n", fieldName);
-        exit(1);
-    }
-
-    errno = 0;
-    char* son;
-
-    int taban = (field[0] == '0' && (field[1] == 'x' || field[1] == 'X')) ? 16 : 10;
-
-    unsigned long value = strtoul(field, &son, taban);
-
-    if(son == field || *son != '\0'){
-        fprintf(stderr, "Invalid value for %s: \"%s\"\n", fieldName, field);
-        exit(1);
-    }
-
-    if(errno == ERANGE || value > UINT32_MAX){
-        fprintf(stderr, "%s exceeds 32 bits: \"%s\"\n", fieldName, field);
-        exit(1);
-    }
-
-    return (uint32_t) value;
-}
-
 uint32_t* parseRom(const char* path, uint32_t rom_size){
     uint32_t capacity = rom_size / 4;
     uint32_t* rom = (uint32_t*)calloc(capacity, sizeof(uint32_t));
@@ -195,273 +167,273 @@ uint32_t* parseRom(const char* path, uint32_t rom_size){
     return rom;
 }
 
-struct Request* parseRequest(const char* zoktay, uint32_t* sueda){
+struct Request* parseRequest(const char* file, uint32_t* numRequests){
 
     // Dosyayi okuyup butun icerigi bellekte tutuyoruz
-    char* lidya = read_file(zoktay);
+    char* content = read_file(file);
 
-    if(lidya == NULL){
+    if(content == NULL){
         exit(1);
     }
 
 
     // Kac tane istek oldugunu sayacagiz
-    uint32_t mins = 0;
+    uint32_t ctr = 0;
 
-    uint32_t eso = 16;
+    uint32_t size = 16;
 
 
     // Baslangicta biraz yer ayiriyoruz
-    struct Request* hilal =
-        (struct Request*) malloc(eso * sizeof(struct Request));
+    struct Request* requestPtr =
+        (struct Request*) malloc(size * sizeof(struct Request));
 
-    if(hilal == NULL){
+    if(requestPtr == NULL){
         fprintf(stderr, "out of memory\n");
 
-        free(lidya);
+        free(content);
 
         exit(1);
     }
 
 
     // Satir satir ilerlemek icin kullaniliyor
-    char* zoktaySatir = lidya;
+    char* line = content;
 
 
 
-    while(zoktaySatir != NULL && *zoktaySatir != '\0'){
+    while(line != NULL && *line != '\0'){
 
 
         // Yeni satirin yerini ariyoruz
-        char* suedaYeniSatir = strchr(zoktaySatir, '\n');
+        char* newLine = strchr(line, '\n');
 
-        if(suedaYeniSatir != NULL){
-            *suedaYeniSatir = '\0';
+        if(newLine != NULL){
+            *newLine = '\0';
         }
 
 
-        size_t lidyaUzunluk = strlen(zoktaySatir);
+        size_t lineLength = strlen(line);
 
-        if(lidyaUzunluk > 0 &&
-           zoktaySatir[lidyaUzunluk - 1] == '\r'){
-            zoktaySatir[lidyaUzunluk - 1] = '\0';
+        if(lineLength > 0 &&
+           line[lineLength - 1] == '\r'){
+            line[lineLength - 1] = '\0';
         }
 
 
         // Bastaki bosluklari atla
-        char* minsTemiz = zoktaySatir;
+        char* trimmedLine = line;
 
-        while(isspace((unsigned char)*minsTemiz)){
-            minsTemiz++;
+        while(isspace((unsigned char)*trimmedLine)){
+            trimmedLine++;
         }
 
 
         // Bos satir degilse parse islemi yap
-        if(*minsTemiz != '\0'){
+        if(*trimmedLine != '\0'){
 
-            char* esoAlanlar[5];
+            char* fields[5];
 
-            char* hilalImlec = minsTemiz;
+            char* ptr = trimmedLine;
 
 
             // Ilk 4 virgul ayracini buluyoruz
             for(int i = 0; i < 4; i++){
 
-                char* zoktayVirgul = strchr(hilalImlec, ',');
+                char* comma = strchr(ptr, ',');
 
-                if(zoktayVirgul == NULL){
+                if(comma == NULL){
                     fprintf(stderr,
                             "Invalid request line %u: expected 5 fields\n",
-                            mins);
+                            ctr);
 
-                    free(lidya);
-                    free(hilal);
+                    free(content);
+                    free(requestPtr);
                     exit(1);
                 }
 
-                *zoktayVirgul = '\0';
+                *comma = '\0';
 
-                esoAlanlar[i] = kes(hilalImlec);
+                fields[i] = kes(ptr);
 
-                hilalImlec = zoktayVirgul + 1;
+                ptr = comma + 1;
             }
 
 
-            if(strchr(hilalImlec, ',') != NULL){
+            if(strchr(ptr, ',') != NULL){
                 fprintf(stderr,
                         "Invalid request line %u: too many fields\n",
-                        mins);
+                        ctr);
 
-                free(lidya);
-                free(hilal);
+                free(content);
+                free(requestPtr);
                 exit(1);
             }
 
-            esoAlanlar[4] = kes(hilalImlec);
+            fields[4] = kes(ptr);
 
 
-            struct Request suedaReq;
+            struct Request request;
 
 
 
             // R mi W mi diye kontrol ediyoruz
-            if(strlen(esoAlanlar[0]) != 1 ||
-               (esoAlanlar[0][0] != 'R' &&
-                esoAlanlar[0][0] != 'W')){
+            if(strlen(fields[0]) != 1 ||
+               (fields[0][0] != 'R' &&
+                fields[0][0] != 'W')){
 
                 fprintf(stderr,
                         "Invalid request type on line %u: \"%s\" (expected R or W)\n",
-                        mins,
-                        esoAlanlar[0]);
+                        ctr,
+                        fields[0]);
 
-                free(lidya);
-                free(hilal);
+                free(content);
+                free(requestPtr);
                 exit(1);
             }
 
-            suedaReq.w = (esoAlanlar[0][0] == 'W') ? 1 : 0;
+            request.w = (fields[0][0] == 'W') ? 1 : 0;
 
 
 
             // Adresi oku
-            suedaReq.addr =
-                parseUint32Field(esoAlanlar[1], "address");
+            request.addr =
+                parseUint32Field(fields[1], "address");
 
 
 
             // Wide flag kontrolu
-            if(strlen(esoAlanlar[4]) != 1 ||
-               (esoAlanlar[4][0] != 'T' &&
-                esoAlanlar[4][0] != 'F')){
+            if(strlen(fields[4]) != 1 ||
+               (fields[4][0] != 'T' &&
+                fields[4][0] != 'F')){
 
                 fprintf(stderr,
                         "Invalid wide flag on line %u: \"%s\" (expected T or F)\n",
-                        mins,
-                        esoAlanlar[4]);
+                        ctr,
+                        fields[4]);
 
-                free(lidya);
-                free(hilal);
+                free(content);
+                free(requestPtr);
                 exit(1);
             }
 
-            suedaReq.wide =
-                (esoAlanlar[4][0] == 'T') ? 1 : 0;
+            request.wide =
+                (fields[4][0] == 'T') ? 1 : 0;
 
 
 
             // Yazma istegiyse data lazim
-            if(suedaReq.w){
+            if(request.w){
 
-                if(esoAlanlar[2][0] == '\0'){
+                if(fields[2][0] == '\0'){
                     fprintf(stderr,
                             "Missing data value for write request on line %u\n",
-                            mins);
+                            ctr);
 
-                    free(lidya);
-                    free(hilal);
+                    free(content);
+                    free(requestPtr);
                     exit(1);
                 }
 
-                suedaReq.data =
-                    parseUint32Field(esoAlanlar[2], "data");
+                request.data =
+                    parseUint32Field(fields[2], "data");
 
 
                 // Dar yazma ise tek byte sigmali
-                if(!suedaReq.wide &&
-                   suedaReq.data > 0xFF){
+                if(!request.wide &&
+                   request.data > 0xFF){
 
                     fprintf(stderr,
                             "Data value exceeds 1 byte for narrow write on line %u: \"%s\"\n",
-                            mins,
-                            esoAlanlar[2]);
+                            ctr,
+                            fields[2]);
 
-                    free(lidya);
-                    free(hilal);
+                    free(content);
+                    free(requestPtr);
                     exit(1);
                 }
 
             } else {
 
                 // Okuma isteginde data bos olmali
-                if(esoAlanlar[2][0] != '\0'){
+                if(fields[2][0] != '\0'){
                     fprintf(stderr,
                             "Data value must be empty for read request on line %u\n",
-                            mins);
+                            ctr);
 
-                    free(lidya);
-                    free(hilal);
+                    free(content);
+                    free(requestPtr);
                     exit(1);
                 }
 
-                suedaReq.data = 0;
+                request.data = 0;
             }
 
 
 
             // Kullanici bilgisini aliyoruz
-            uint32_t lidyaUser =
-                parseUint32Field(esoAlanlar[3], "user");
+            uint32_t user =
+                parseUint32Field(fields[3], "user");
 
-            if(lidyaUser > 255){
+            if(user > 255){
                 fprintf(stderr,
                         "User value out of range on line %u: \"%s\"\n",
-                        mins,
-                        esoAlanlar[3]);
+                        ctr,
+                        fields[3]);
 
-                free(lidya);
-                free(hilal);
+                free(content);
+                free(requestPtr);
                 exit(1);
             }
 
-            suedaReq.user = (uint8_t) lidyaUser;
+            request.user = (uint8_t) user;
 
 
 
             // Yer kalmadiysa diziyi buyut
-            if(mins >= eso){
+            if(ctr >= size){
 
-                eso *= 2;
+                size *= 2;
 
                 struct Request* zoktayBuyumus =
                     (struct Request*)
-                    realloc(hilal,
-                            eso * sizeof(struct Request));
+                    realloc(requestPtr,
+                            size * sizeof(struct Request));
 
                 if(zoktayBuyumus == NULL){
                     fprintf(stderr, "out of memory\n");
 
-                    free(lidya);
-                    free(hilal);
+                    free(content);
+                    free(requestPtr);
 
                     exit(1);
                 }
 
-                hilal = zoktayBuyumus;
+                requestPtr = zoktayBuyumus;
             }
 
 
 
             // Artik istegi listeye ekleyebiliriz
-            hilal[mins++] = suedaReq;
+            requestPtr[ctr++] = request;
         }
 
 
 
         // Sonraki satira geciyoruz
-        zoktaySatir =
-            suedaYeniSatir != NULL
-            ? suedaYeniSatir + 1
+        line =
+            newLine != NULL
+            ? newLine + 1
             : NULL;
     }
 
 
 
     // Dosya icerigi artik gerekli degil
-    free(lidya);
+    free(content);
 
-    *sueda = mins;
+    *numRequests = ctr;
 
-    return hilal;
+    return requestPtr;
 }
 
 

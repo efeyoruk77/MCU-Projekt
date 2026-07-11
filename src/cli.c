@@ -4,74 +4,122 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <string.h>
 #include <errno.h>
+#include <string.h>
+#include <sys/stat.h>
 #include <sys/types.h>
-
 #include "../include/types.hpp"
 
-uint32_t* parseRom(const char* file, uint32_t rom_size){
-    FILE* f = fopen(file, "r");
-    if(f == NULL){
-        fprintf(stderr, "Can't open the ROM content file\n");
-        exit(1);
+static char* read_file(const char* path){
+    char* string = NULL;
+    FILE* file;
+
+    if(!(file = fopen(path, "r"))){
+        perror("Error opening the file");
+        return NULL;
     }
+
+    struct stat statbuf;
+    if(fstat(fileno(file), &statbuf)){
+        fprintf(stderr, "Error retrieving file stats\n");
+        goto cleanup;
+    }
+
+    if(!S_ISREG(statbuf.st_mode) || statbuf.st_size <= 0){
+        fprintf(stderr, "Error processing the file\n");
+        goto cleanup;
+    }
+
+    if(!(string = (char*) malloc(statbuf.st_size + 1))){
+        fprintf(stderr, "Not enough memory\n");
+        goto cleanup;
+    }
+
+    if(fread(string, 1, statbuf.st_size, file) != (size_t) statbuf.st_size){
+        fprintf(stderr, "Error reading the file\n");
+        free(string);
+        string = NULL;
+        goto cleanup;
+    }
+
+    string[statbuf.st_size] = '\0';
+
+    cleanup:
+        if(file) fclose(file);
+        return string;
+}
+
+uint32_t* parseRom(const char* path, uint32_t rom_size){
     uint32_t capacity = rom_size / 4;
-    uint32_t* content = (uint32_t*) calloc(capacity > 0 ? capacity : 1, sizeof(uint32_t));
-    if(content == NULL){
-        fprintf(stderr, "Out of memory during allocation\n");
+    uint32_t* rom = (uint32_t*)calloc(capacity, sizeof(uint32_t));
+
+    if(capacity != 0 && rom == NULL){
+        fprintf(stderr, "out of memory");
         exit(1);
     }
 
-    char line[256];
-    uint32_t count = 0;
-
-    while(fgets(line, sizeof(line), f) != NULL){
-        char *ptr = line;
-        while(isspace((unsigned char) *ptr)){
-            ptr++;
-        }
-
-        if(*ptr == '\0'){
-            continue;
-        }
-
-        if(*ptr == '-'){
-            fprintf(stderr, "Value can't be negative\n");
-            exit(1);
-        }
-
-        char *endptr;
-        uint32_t value = strtoul(ptr, &endptr, 0);
-        while(isspace((unsigned char) *endptr)){
-            endptr++;
-        }
-        if(ptr == endptr || *endptr != '\0'){
-            fprintf(stderr, "Invalid value\n");
-            exit(1);
-        }
-        if(count >= capacity){
-            fprintf(stderr, "More values than size");
-            exit(1);
-        }
-        content[count] = value;
-        count++;
+    if(path == NULL){
+        return rom;
     }
-    fclose(f);
-    return content;
+
+    char* content = read_file(path);
+    if(content == NULL){
+        free(rom);
+        exit(1);
+    }
+
+    const char*p = content;
+    uint32_t count = 0;
+    uint32_t index = 0;
+
+    while (true)
+    {
+        while(isspace((unsigned char) *p)){
+            if(*p == '\n') index++;
+            p++;
+        }
+        if(*p == '\0') break;
+
+        if(*p == '-'){
+            fprintf(stderr, "Negative value\n");
+            free(content);
+            free(rom);
+            exit(1);
+        }
+
+        errno = 0;
+        char* endptr;
+        unsigned long value = strtoul(p, &endptr, 0);
+
+        if(endptr == p){
+            fprintf(stderr, "Invalid value\n");
+            free(content);
+            free(rom);
+            exit(1);
+        }
+
+        if(errno == ERANGE || value > UINT32_MAX){
+            fprintf(stderr, "Value exceeds 32 bits\n");
+            free(content);
+            free(rom);
+            exit(1);
+        }
+
+        if(count >= capacity){
+            fprintf(stderr, "ROM file has more values then the ROM holds\n");
+            free(content);
+            free(rom);
+            exit(1);            
+        }
+
+        rom[count] = (uint32_t) value;
+        count++;
+        p = endptr;
+    }
+    free(content);
+    return rom;
 }
 
-static uint32_t parseValue(char* str, uint32_t line_number, const char* field){
-    
-}
-
-static char parseLetter(char* str, uint32_t line_number, const char* field){
-
-}
-
-struct Request* parseRequests(const char* file, uint32_t numRequests){
-    
-}
 
 struct Parameters parse_cli(int argc, char** argv){
     int c;
@@ -228,5 +276,8 @@ struct Parameters parse_cli(int argc, char** argv){
     parameters.latencyRom = latency;
     parameters.romSize = rom_size;
     parameters.blockSize = block_size;
+    //romContent
+    parameters.romContent = parseRom(romContent_path, rom_size);
+    //requests
     return parameters   ;
 }

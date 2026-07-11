@@ -89,7 +89,8 @@ uint32_t* parseRom(const char* path, uint32_t rom_size){
 
         errno = 0;
         char* endptr;
-        unsigned long value = strtoul(p, &endptr, 0);
+        int base = (p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) ? 16 : 10;
+        unsigned long value = strtoul(p, &endptr, base);
 
         if(endptr == p){
             fprintf(stderr, "Invalid value\n");
@@ -100,6 +101,13 @@ uint32_t* parseRom(const char* path, uint32_t rom_size){
 
         if(errno == ERANGE || value > UINT32_MAX){
             fprintf(stderr, "Value exceeds 32 bits\n");
+            free(content);
+            free(rom);
+            exit(1);
+        }
+
+        if(!isspace((unsigned char)*endptr) && *endptr != '\0'){
+            fprintf(stderr, "Invalid value\n");
             free(content);
             free(rom);
             exit(1);

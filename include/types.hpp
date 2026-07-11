@@ -33,6 +33,7 @@ extern "C" {
 
 struct Parameters parse_cli(int argc, char** argv);
 uint32_t* parseRom(const char* file, uint32_t rom_size);
+struct Request* parseRequest(const char* file, uint32_t* numRequests);
 
 #ifdef __cplusplus
 }

@@ -61,6 +61,18 @@ uint32_t* parseRom(const char* file, uint32_t rom_size){
     return content;
 }
 
+static uint32_t parseValue(char* str, uint32_t line_number, const char* field){
+    
+}
+
+static char parseLetter(char* str, uint32_t line_number, const char* field){
+
+}
+
+struct Request* parseRequests(const char* file, uint32_t numRequests){
+    
+}
+
 struct Parameters parse_cli(int argc, char** argv){
     int c;
     char* helpMessage = "What even is C about"; 
@@ -210,11 +222,11 @@ struct Parameters parse_cli(int argc, char** argv){
         fprintf(stderr, "Request file not given!");
         exit(1);
     }
+    parameters.requests = parseRequest(request_file, &parameters.numRequests);
     parameters.cycles = cycles;
     parameters.tracefile = tracePath;
     parameters.latencyRom = latency;
     parameters.romSize = rom_size;
     parameters.blockSize = block_size;
-    //requests
     return parameters   ;
 }

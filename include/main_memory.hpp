@@ -22,13 +22,26 @@ SC_MODULE(MAIN_MEMORY) {
     }
 
     void update(){
+        ready.write(false);
         while(true){
             wait();
             if(r.read()){
-                doRead(w.read());
-            }
-            if(w.read()){
-                doWrite();
+                uint32_t res = get(addr.read());
+                for(int i = 0; i < LATENCY; i++){
+                    wait();
+                }
+                rdata.write(res);
+                ready.write(true);
+                while(r.read()) wait();
+                ready.write(false);
+            } else if(w.read()){
+                set(addr.read(), wdata.read());
+                for(int i = 0; i < LATENCY; i++){
+                    wait();
+                }
+                ready.write(true);
+                while(w.read()) wait();
+                ready.write(false);
             }
         }
     }

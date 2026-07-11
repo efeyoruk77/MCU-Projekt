@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <stdbool.h>
 #include "../include/types.hpp"
 
 static char* read_file(const char* path){
@@ -137,7 +138,7 @@ struct Parameters parse_cli(int argc, char** argv){
     uint32_t rom_size = 0x100000;
     uint32_t block_size = 0x1000;
 
-    Parameters parameters;
+    struct Parameters parameters;
 
     char* tracePath = NULL; 
     char* romContent_path = NULL;

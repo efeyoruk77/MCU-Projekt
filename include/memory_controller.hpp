@@ -20,7 +20,8 @@ SC_MODULE(MEMORY_CONTROLLER){
     sc_in<uint32_t> addr, wdata, mem_rdata;
     sc_in<uint8_t> user;
 
-    sc_signal<bool> rom_read, rom_ready, allowed;
+    sc_signal<bool> rom_read, rom_ready, allowed, mpu_write, mpu_wide;
+    sc_signal<uint8_t> mpu_owner;
     sc_signal<uint32_t> rom_rdata;
 
     sc_out<uint32_t> rdata, mem_addr, mem_wdata;
@@ -45,6 +46,10 @@ SC_MODULE(MEMORY_CONTROLLER){
 
         memory_protection_unit.input_address(addr);
         memory_protection_unit.input_user(user);
+        memory_protection_unit.input_write(mpu_write);
+        memory_protection_unit.input_wide(mpu_wide);
+        memory_protection_unit.output_allowed(allowed);
+        memory_protection_unit.output_owner(mpu_owner);
 
         SC_THREAD(behaviour);
         sensitive << clk.pos();

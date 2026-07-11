@@ -129,6 +129,53 @@ uint32_t* parseRom(const char* path, uint32_t rom_size){
     return rom;
 }
 
+struct Request* parseRequest(const char* path, uint32_t* numRequests){
+    char* content = read_file(path);
+    if(content == NULL){
+        exit(1);
+    }
+
+    uint32_t count = 0;
+    char* line = content;
+
+    while(line != NULL && *line != '\0'){
+        char* nl = strchr(line, '\n');
+
+        if(nl != NULL){
+            *nl = '\0';
+
+
+
+
+
+        }
+
+        // zoktay bunu yapmak gerekiyor çünkü windows dosyalarında satır sonu \r\n şeklinde oluyor ve bu yüzden \r karakteri kalıyor. onu temizlemek için yapıyoruz.
+        size_t len = strlen(line);
+        if(len > 0 && line[len - 1] == '\r'){
+            line[len - 1] = '\0';
+        }
+
+        // burayı atlıyoruz çünkü boş satırları saymak istemiyoruz. bu yüzden boş satırları atlıyoruz.
+        char* trimmed = line;
+        while(isspace((unsigned char) *trimmed)){
+            trimmed++;
+        }
+
+        if(*trimmed != '\0'){
+            printf("Line %u: \"%s\"\n", count, line);
+            count++;
+        }
+
+        line = nl != NULL ? nl + 1 : NULL;
+    }
+
+    free(content);
+    *numRequests = count;
+    return NULL; //
+}
+
+
 
 struct Parameters parse_cli(int argc, char** argv){
     int c;

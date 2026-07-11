@@ -11,6 +11,8 @@
 #include "sysc/kernel/sc_module.h"
 #include "sysc/kernel/sc_module_name.h"
 #include "sysc/kernel/sc_simcontext.h"
+#include "sysc/kernel/sc_wait.h"
+#include "sysc/kernel/sc_wait_cthread.h"
 using namespace sc_core;
 
 SC_MODULE(MEMORY_CONTROLLER){
@@ -18,7 +20,7 @@ SC_MODULE(MEMORY_CONTROLLER){
     sc_in<uint32_t> addr, wdata, mem_rdata;
     sc_in<uint8_t> user;
 
-    sc_signal<bool> rom_read, rom_ready;
+    sc_signal<bool> rom_read, rom_ready, allowed;
     sc_signal<uint32_t> rom_rdata;
 
     sc_out<uint32_t> rdata, mem_addr, mem_wdata;
@@ -40,28 +42,111 @@ SC_MODULE(MEMORY_CONTROLLER){
 
         rom.rdata(rom_rdata);
         rom.ready(rom_ready);
+
+        memory_protection_unit.input_address(addr);
+        memory_protection_unit.input_user(user);
+
         SC_THREAD(behaviour);
-    
+        sensitive << clk.pos();
 
     }
 
     void behaviour(){
         while(true){   
             wait();
+            ready.write(0);
+            error.write(0);
             if(r.read()){
                 if(addr.read() < rom_size){
                     rom_read.write(1); //ROM access
                     while(!rom.ready.read()){
                         wait();
                     }
+                    rdata.write(rom_rdata.read());
+                    rom_read.write(0);
+                    while (rom.ready.read()) {
+                        wait();
+                    }
+                    ready.write(1);
+                }else{
+                    bool allowed = memory_protection_unit.accessAndModify(addr.read(), user.read(), false, wide.read());
+                    if(!allowed){
+                        ready.write(1);
+                        error.write(1);
+                        continue;
+                    }
                     
+                    uint32_t word = doMemRead();
+                    if(wide.read()){
+                        rdata.write(word);
+                    }else{
+                        uint32_t byte = word & 0xFF;
+                        rdata.write(byte);
+                    }
+                    ready.write(1);
+                }
+            }
+            if(w.read()){
+                if(addr.read() < rom_size){
+                    ready.write(1);
+                    error.write(1);
+                    continue;    
+                }else{
+                    bool allowed = memory_protection_unit.accessAndModify(addr.read(), user.read(), true, wide.read());
+                    if(!allowed){
+                        ready.write(1);
+                        error.write(1);
+                        continue;
+                    }
+                    
+                    uint32_t resWData;
+
+                    if(wide.read()){
+                        resWData = wdata.read();
+                    }else{
+                        uint32_t oldWord = doMemRead();
+                        uint8_t newByte = wdata.read() & 0xFF;
+                        resWData = (oldWord & 0xFFFFFF00) | newByte;
+                    }
+
+                    mem_r.write(0);
+                    mem_w.write(1);
+                    
+                    mem_addr.write(addr.read());
+                    mem_wdata.write(resWData);
+
+                    while(!mem_ready.read()){
+                        wait();
+                    }
+                    mem_w.write(0);
+                    while(mem_ready.read()){
+                        wait();
+                    }
+                    ready.write(1);
                 }
             }
         }
     }
 
+    uint32_t doMemRead(){
+        mem_r.write(1);
+        mem_w.write(0);
+        mem_addr.write(addr.read());
+        mem_wdata.write(0);
+        while(!mem_ready.read()){
+            wait();
+        }
+        uint32_t res = mem_rdata.read();
+        mem_r.write(0);
+        while(mem_ready.read()){
+            wait();
+        }
+
+        return res;
+    }
+
     uint8_t getOwner(uint32_t address){
-        return memory_protection_unit.getOwner(address).to_uint();
+        return memory_protection_unit.getOwner(address);
     }
 
     void setRomAt(uint32_t address, uint8_t data){

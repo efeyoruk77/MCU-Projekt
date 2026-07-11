@@ -8,16 +8,16 @@
 SC_MODULE(MemoryProtectionUnit){
 private:
     uint32_t block_size;
-    std::unordered_map<uint32_t, sc_uint<8>> owner_map;
+    std::unordered_map<uint32_t, uint8_t> owner_map;
 
 public:
     sc_in<uint32_t> input_address;
-    sc_in<sc_uint<8>> input_user;
+    sc_in<uint8_t> input_user;
     sc_in<bool> input_write;
     sc_in<bool> input_wide;
 
     sc_out<bool> output_allowed;
-    sc_out<sc_uint<8>> output_owner;
+    sc_out<uint8_t> output_owner;
 
     
     SC_HAS_PROCESS(MemoryProtectionUnit);
@@ -29,8 +29,8 @@ public:
     }
 
     void checkAccess();
-    bool accessAndModify(uint32_t address, sc_uint<8> user, bool write, bool wide);
-    sc_uint<8> getOwner(uint32_t address) const;
+    bool accessAndModify(uint32_t address, uint8_t user, bool write, bool wide);
+    uint8_t getOwner(uint32_t address) const;
 };
 
 #endif

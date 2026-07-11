@@ -18,6 +18,7 @@ public:
     sc_in<uint32_t> addr;
     sc_in<bool> clk;
     sc_in<bool> read_enable;
+    sc_in<bool> wide;
 
     sc_out<uint32_t> rdata;
     sc_out<bool> ready;

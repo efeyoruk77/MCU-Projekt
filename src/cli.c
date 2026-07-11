@@ -420,10 +420,7 @@ struct Request* parseRequest(const char* file, uint32_t* numRequests){
 
 
         // Sonraki satira geciyoruz
-        line =
-            newLine != NULL
-            ? newLine + 1
-            : NULL;
+        line = newLine != NULL ? newLine + 1 : NULL;
     }
 
 

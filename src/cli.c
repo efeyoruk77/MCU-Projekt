@@ -51,7 +51,7 @@ static char* read_file(const char* path){
 }
 
 // helper fonksiyon 
-static char* kes(char* s){
+static char* split(char* s){
     while(isspace((unsigned char) *s)) s++;
     char* end = s + strlen(s);
     while(end > s && isspace((unsigned char) end[-1])) end--;
@@ -168,49 +168,31 @@ uint32_t* parseRom(const char* path, uint32_t rom_size){
 }
 
 struct Request* parseRequest(const char* file, uint32_t* numRequests){
-
-    // Dosyayi okuyup butun icerigi bellekte tutuyoruz
+    
     char* content = read_file(file);
 
     if(content == NULL){
         exit(1);
     }
 
-
-    // Kac tane istek oldugunu sayacagiz
     uint32_t ctr = 0;
-
     uint32_t size = 16;
-
-
-    // Baslangicta biraz yer ayiriyoruz
-    struct Request* requestPtr =
-        (struct Request*) malloc(size * sizeof(struct Request));
+    struct Request* requestPtr = (struct Request*) malloc(size * sizeof(struct Request));
 
     if(requestPtr == NULL){
         fprintf(stderr, "out of memory\n");
-
         free(content);
-
         exit(1);
     }
 
-
-    // Satir satir ilerlemek icin kullaniliyor
     char* line = content;
-
-
 
     while(line != NULL && *line != '\0'){
 
-
-        // Yeni satirin yerini ariyoruz
         char* newLine = strchr(line, '\n');
-
         if(newLine != NULL){
             *newLine = '\0';
         }
-
 
         size_t lineLength = strlen(line);
 
@@ -218,218 +200,118 @@ struct Request* parseRequest(const char* file, uint32_t* numRequests){
            line[lineLength - 1] == '\r'){
             line[lineLength - 1] = '\0';
         }
-
-
-        // Bastaki bosluklari atla
         char* trimmedLine = line;
-
         while(isspace((unsigned char)*trimmedLine)){
             trimmedLine++;
         }
 
-
-        // Bos satir degilse parse islemi yap
         if(*trimmedLine != '\0'){
-
             char* fields[5];
-
             char* ptr = trimmedLine;
 
-
-            // Ilk 4 virgul ayracini buluyoruz
             for(int i = 0; i < 4; i++){
-
                 char* comma = strchr(ptr, ',');
-
                 if(comma == NULL){
-                    fprintf(stderr,
-                            "Invalid request line %u: expected 5 fields\n",
-                            ctr);
-
+                    fprintf(stderr, "Invalid request line %u: expected 5 fields\n", ctr);
                     free(content);
                     free(requestPtr);
                     exit(1);
                 }
-
                 *comma = '\0';
-
-                fields[i] = kes(ptr);
-
+                fields[i] = split(ptr);
                 ptr = comma + 1;
             }
 
-
             if(strchr(ptr, ',') != NULL){
-                fprintf(stderr,
-                        "Invalid request line %u: too many fields\n",
-                        ctr);
-
+                fprintf(stderr, "Invalid request line %u: too many fields\n", ctr);
                 free(content);
                 free(requestPtr);
                 exit(1);
             }
 
-            fields[4] = kes(ptr);
-
-
+            fields[4] = split(ptr);
             struct Request request;
 
-
-
-            // R mi W mi diye kontrol ediyoruz
             if(strlen(fields[0]) != 1 ||
                (fields[0][0] != 'R' &&
                 fields[0][0] != 'W')){
-
-                fprintf(stderr,
-                        "Invalid request type on line %u: \"%s\" (expected R or W)\n",
-                        ctr,
-                        fields[0]);
-
+                fprintf(stderr, "Invalid request type on line %u: \"%s\" (expected R or W)\n", ctr, fields[0]);
                 free(content);
                 free(requestPtr);
                 exit(1);
             }
 
             request.w = (fields[0][0] == 'W') ? 1 : 0;
+            request.addr = parseUint32Field(fields[1], "address");
 
-
-
-            // Adresi oku
-            request.addr =
-                parseUint32Field(fields[1], "address");
-
-
-
-            // Wide flag kontrolu
             if(strlen(fields[4]) != 1 ||
                (fields[4][0] != 'T' &&
                 fields[4][0] != 'F')){
-
-                fprintf(stderr,
-                        "Invalid wide flag on line %u: \"%s\" (expected T or F)\n",
-                        ctr,
-                        fields[4]);
-
+                fprintf(stderr, "Invalid wide flag on line %u: \"%s\" (expected T or F)\n", ctr, fields[4]);
                 free(content);
                 free(requestPtr);
                 exit(1);
             }
 
-            request.wide =
-                (fields[4][0] == 'T') ? 1 : 0;
+            request.wide = (fields[4][0] == 'T') ? 1 : 0;
 
-
-
-            // Yazma istegiyse data lazim
             if(request.w){
-
                 if(fields[2][0] == '\0'){
-                    fprintf(stderr,
-                            "Missing data value for write request on line %u\n",
-                            ctr);
-
+                    fprintf(stderr, "Missing data value for write request on line %u\n", ctr);
                     free(content);
                     free(requestPtr);
                     exit(1);
                 }
 
-                request.data =
-                    parseUint32Field(fields[2], "data");
+                request.data = parseUint32Field(fields[2], "data");
 
-
-                // Dar yazma ise tek byte sigmali
                 if(!request.wide &&
                    request.data > 0xFF){
-
-                    fprintf(stderr,
-                            "Data value exceeds 1 byte for narrow write on line %u: \"%s\"\n",
-                            ctr,
-                            fields[2]);
-
+                    fprintf(stderr, "Data value exceeds 1 byte for narrow write on line %u: \"%s\"\n", ctr, fields[2]);
                     free(content);
                     free(requestPtr);
                     exit(1);
                 }
-
             } else {
-
-                // Okuma isteginde data bos olmali
                 if(fields[2][0] != '\0'){
-                    fprintf(stderr,
-                            "Data value must be empty for read request on line %u\n",
-                            ctr);
-
+                    fprintf(stderr, "Data value must be empty for read request on line %u\n", ctr);
                     free(content);
                     free(requestPtr);
                     exit(1);
                 }
-
                 request.data = 0;
             }
 
-
-
-            // Kullanici bilgisini aliyoruz
-            uint32_t user =
-                parseUint32Field(fields[3], "user");
+            uint32_t user = parseUint32Field(fields[3], "user");
 
             if(user > 255){
-                fprintf(stderr,
-                        "User value out of range on line %u: \"%s\"\n",
-                        ctr,
-                        fields[3]);
-
+                fprintf(stderr, "User value out of range on line %u: \"%s\"\n", ctr, fields[3]);
                 free(content);
                 free(requestPtr);
                 exit(1);
             }
-
             request.user = (uint8_t) user;
 
-
-
-            // Yer kalmadiysa diziyi buyut
             if(ctr >= size){
-
                 size *= 2;
-
-                struct Request* zoktayBuyumus =
+                struct Request* request =
                     (struct Request*)
-                    realloc(requestPtr,
-                            size * sizeof(struct Request));
-
-                if(zoktayBuyumus == NULL){
+                    realloc(requestPtr, size * sizeof(struct Request));
+                if(request == NULL){
                     fprintf(stderr, "out of memory\n");
-
                     free(content);
                     free(requestPtr);
-
                     exit(1);
                 }
-
-                requestPtr = zoktayBuyumus;
+                requestPtr = request;
             }
-
-
-
-            // Artik istegi listeye ekleyebiliriz
             requestPtr[ctr++] = request;
         }
-
-
-
-        // Sonraki satira geciyoruz
         line = newLine != NULL ? newLine + 1 : NULL;
     }
 
-
-
-    // Dosya icerigi artik gerekli degil
     free(content);
-
     *numRequests = ctr;
-
     return requestPtr;
 }
 
@@ -440,7 +322,7 @@ struct Parameters parse_cli(int argc, char** argv){
     char* helpMessage = "What even is C about"; 
     uint32_t latency = 1;
     uint32_t cycles = 1;
-    uint32_t rom_size = 0x100000;
+    uint32_t rom_size = 0x10000;
     uint32_t block_size = 0x1000;
 
     struct Parameters parameters;

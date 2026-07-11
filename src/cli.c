@@ -4,11 +4,72 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
+#include <errno.h>
 #include <sys/types.h>
 
 #include "../include/types.hpp"
 
 uint32_t* parseRom(const char* file, uint32_t rom_size){
+    FILE* f = fopen(file, "r");
+    if(f == NULL){
+        fprintf(stderr, "Can't open the ROM content file\n");
+        exit(1);
+    }
+    uint32_t capacity = rom_size / 4;
+    uint32_t* content = (uint32_t*) calloc(capacity > 0 ? capacity : 1, sizeof(uint32_t));
+    if(content == NULL){
+        fprintf(stderr, "Out of memory during allocation\n");
+        exit(1);
+    }
+
+    char line[256];
+    uint32_t count = 0;
+
+    while(fgets(line, sizeof(line), f) != NULL){
+        char *ptr = line;
+        while(isspace((unsigned char) *ptr)){
+            ptr++;
+        }
+
+        if(*ptr == '\0'){
+            continue;
+        }
+
+        if(*ptr == '-'){
+            fprintf(stderr, "Value can't be negative\n");
+            exit(1);
+        }
+
+        char *endptr;
+        uint32_t value = strtoul(ptr, &endptr, 0);
+        while(isspace((unsigned char) *endptr)){
+            endptr++;
+        }
+        if(ptr == endptr || *endptr != '\0'){
+            fprintf(stderr, "Invalid value\n");
+            exit(1);
+        }
+        if(count >= capacity){
+            fprintf(stderr, "More values than size");
+            exit(1);
+        }
+        content[count] = value;
+        count++;
+    }
+    fclose(f);
+    return content;
+}
+
+static uint32_t parseValue(char* str, uint32_t line_number, const char* field){
+    
+}
+
+static char parseLetter(char* str, uint32_t line_number, const char* field){
+
+}
+
+struct Request* parseRequests(const char* file, uint32_t numRequests){
     
 }
 
@@ -146,7 +207,7 @@ struct Parameters parse_cli(int argc, char** argv){
     if(romContent_path != NULL){
         parameters.romContent = parseRom(romContent_path, rom_size);
     }else{
-        fprintf(stderr, "ROM Content file is missing!\n");
+        parameters.romContent = (uint32_t*) calloc(rom_size / 4 > 0 ? rom_size / 4 : 1, sizeof(uint32_t));
     }
 
     char *request_file;
@@ -161,11 +222,11 @@ struct Parameters parse_cli(int argc, char** argv){
         fprintf(stderr, "Request file not given!");
         exit(1);
     }
+    parameters.requests = parseRequest(request_file, &parameters.numRequests);
     parameters.cycles = cycles;
     parameters.tracefile = tracePath;
     parameters.latencyRom = latency;
     parameters.romSize = rom_size;
     parameters.blockSize = block_size;
-    //requests
     return parameters   ;
 }

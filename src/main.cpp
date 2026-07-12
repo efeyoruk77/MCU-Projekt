@@ -1,5 +1,7 @@
+#include <cstdio>
 #include <systemc>
 #include <systemc.h>
+#include <inttypes.h>
 #include "../include/types.hpp"
 #include "../include/memory_controller.hpp"
 #include "../include/main_memory.hpp"
@@ -18,7 +20,7 @@ struct Result runSimulation (
     sc_clock clk("clk", 1, SC_NS);
     sc_signal<uint32_t> addr("addr"), wdata("wdata"), rdata("rdata");
     sc_signal<uint32_t> mem_addr("mem_addr"), mem_wdata("mem_wdata"), mem_rdata("mem_rdata");
-    sc_signal<bool> r("r"), w("w"), wide("w"), ready("ready"), error("error"), mem_r("mem_r"), mem_w("mem_w"), mem_ready("mem_ready");
+    sc_signal<bool> r("r"), w("w"), wide("wide"), ready("ready"), error("error"), mem_r("mem_r"), mem_w("mem_w"), mem_ready("mem_ready");
     sc_signal<uint8_t> user("user");
 
     MEMORY_CONTROLLER controller("controller", latencyRom, romSize, blockSize, romContent);
@@ -91,8 +93,24 @@ struct Result runSimulation (
             usedCycles++;
         }
         if(finished){
+            printf("Given cycles exceeded. Program will end now!");
             break;
         }
+        if (!requests[i].w) {
+            if(error.read()){
+                printf("Error! User %u does not have access to read from address=0x%08X. (Current cycle: %u)\n", requests[i].user, requests[i].addr, usedCycles);
+            }else{
+                requests[i].data = rdata.read();
+                printf("rdata 0x%08X by user %u. (Current cycle: %u)\n", requests[i].data, requests[i].user, usedCycles);
+            }
+        }else{
+            if(error.read()){
+                printf("Error! User %u does not have access to write to address=0x%08X. (Current cycle: %u)\n", requests[i].user, requests[i].addr, usedCycles);
+            }else{
+                printf("Written data 0x%08X in address=0x%08X by user %u. (Current cycle: %u)\n", requests[i].data, requests[i].addr, requests[i].user, usedCycles);
+            }
+        }
+        
         if(error.read()){
             res.errors++;
         } else if(!requests[i].w){
@@ -119,6 +137,12 @@ struct Result runSimulation (
 int sc_main(int argc, char *argv[]){
     //TODO: Implement the memory controller and
     Parameters parameters = parse_cli(argc, argv);
+    for(uint32_t i = 0; i < parameters.numRequests; i++){
+        struct Request* r = &parameters.requests[i];
+        fprintf(stderr, "[req %u] %c addr=0x%08X data=0x%08X user=%u wide=%c\n",
+                i, r->w ? 'W' : 'R', r->addr, r->data, r->user, r->wide ? 'T' : 'F');
+    }
+    printf("\n");
     Result res = runSimulation(parameters.cycles, parameters.tracefile, parameters.latencyRom, parameters.romSize, parameters.blockSize, parameters.romContent, parameters.numRequests, parameters.requests);
     printf("Simulation finished after %u cycles with %u access errors.\n", res.cycles, res.errors);
     free(parameters.romContent);

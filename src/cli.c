@@ -312,7 +312,7 @@ struct Request* parseRequest(const char* file, uint32_t* numRequests){
 
 struct Parameters parse_cli(int argc, char** argv){
     int c;
-    char* helpMessage = "What even is C about"; 
+    char* helpMessage = "Usage: ./project [flags] [request_file.csv]\nFlags:\n \tcycles: Maximum cycles for the simulation.\n \ttf: If tracefile should be created with argument name.\n \trom-latency, rom-size: Parameters for the ROM.\n \tblock-size: Block size to split the main memory for ownership.\nOptional argument: request_file.csv: Path for the request file containing the memory accesses.\n"; 
     uint32_t latency = 1;
     uint32_t cycles = 1;
     uint32_t rom_size = 0x10000;

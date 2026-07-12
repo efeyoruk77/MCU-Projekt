@@ -59,6 +59,7 @@ SC_MODULE(MEMORY_CONTROLLER){
     void behaviour(){
         while(true){   
             wait();
+            rdata.write(0);
             ready.write(0);
             error.write(0);
             if(r.read()){

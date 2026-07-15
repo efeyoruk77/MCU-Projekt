@@ -51,5 +51,12 @@ public:
 
         memory[index] = (memory[index] & bitMask) | (static_cast<uint32_t>(data) << shift);
     }
+
+    uint32_t getByte(uint32_t address){
+        uint32_t wordIndex = address / 4;
+        uint32_t byteOffset = address % 4;
+        if(wordIndex >= memory.size()) return 0;
+        return (memory[wordIndex] >> (8 * byteOffset)) & 0xFF; 
+    }
 };
 #endif

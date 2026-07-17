@@ -110,7 +110,7 @@ struct Result runSimulation (
                 printf("Written data 0x%08X in address=0x%08X by user %u. (Current cycle: %u)\n", requests[i].data, requests[i].addr, requests[i].user, usedCycles);
             }
         }
-        
+
         if(error.read()){
             res.errors++;
         } else if(!requests[i].w){
@@ -139,7 +139,7 @@ int sc_main(int argc, char *argv[]){
     Parameters parameters = parse_cli(argc, argv);
     for(uint32_t i = 0; i < parameters.numRequests; i++){
         struct Request* r = &parameters.requests[i];
-        fprintf(stderr, "[req %u] %c addr=0x%08X data=0x%08X user=%u wide=%c\n",
+        printf("[req %u] %c addr=0x%08X data=0x%08X user=%u wide=%c\n",
                 i, r->w ? 'W' : 'R', r->addr, r->data, r->user, r->wide ? 'T' : 'F');
     }
     printf("\n");

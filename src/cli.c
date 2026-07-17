@@ -153,6 +153,7 @@ uint32_t* parseRom(const char* path, uint32_t rom_size){
         }
 
         rom[count] = (uint32_t) value;
+        printf("[rom %u] 0x%08X\n", count, rom[count]);
         count++;
         p = endptr;
     }
@@ -439,14 +440,6 @@ struct Parameters parse_cli(int argc, char** argv){
                 exit(1);
         }
     }
-    //TODO: Create a tracefile if tf is set!!!   
-    //TODO: parse the requirements file!!!
-    if(romContent_path != NULL){
-        parameters.romContent = parseRom(romContent_path, rom_size);
-    }else{
-        parameters.romContent = (uint32_t*) calloc(rom_size / 4 > 0 ? rom_size / 4 : 1, sizeof(uint32_t));
-    }
-
     char *request_file;
     if(optind < argc){
         request_file = argv[optind];
@@ -465,8 +458,6 @@ struct Parameters parse_cli(int argc, char** argv){
     parameters.latencyRom = latency;
     parameters.romSize = rom_size;
     parameters.blockSize = block_size;
-    //romContent
     parameters.romContent = parseRom(romContent_path, rom_size);
-    //requests
     return parameters   ;
 }

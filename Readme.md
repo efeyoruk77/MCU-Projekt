@@ -104,8 +104,6 @@ Das Projekt wurde mit C++14, C17 und SystemC 2.3.3 unter Windows WSL und Linux i
 
 \## Quellen
 
-
-
 \- \[1] A Survey of Memory Controller Architectures: Design Trends and Performance Trade-offs – https://ijrar.org/papers/IJRAR22D3204.pdf
 
 \- \[2] Why ROM is Called Non Volatile Memory? – https://www.geeksforgeeks.org/computer-organization-architecture/why-rom-is-called-non-volatile-memory/
@@ -127,6 +125,10 @@ Das Projekt wurde mit C++14, C17 und SystemC 2.3.3 unter Windows WSL und Linux i
 \- \[10] Comparative Study Between Harvard and Von Neumann Architectures – ResearchGate – https://www.researchgate.net/publication/387022161\_Comparative\_Study\_Between\_Harvard\_and\_Von\_Neumann\_Architectures\_in\_Modern\_Computing\_Applications
 
 \- \[11] The Myth of the Harvard Architecture – IEEE Annals (Preprint) – http://metalup.org/harvardarchitecture/The%20Myth%20of%20the%20Harvard%20Architecture.pdf
+
+\- \[12] Memory Controller Basics: Principles \& Architecture – https://www.heisener.com/TechnologyDetail/Memory-Controller-Basics-Principles-Architecture
+
+\- \[13] Design and Implementation of Memory Controller for Byte Access – IRJET – https://www.irjet.net/archives/V11/i6/IRJET-V11I6139.pdf
 
 
 

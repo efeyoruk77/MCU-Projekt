@@ -84,13 +84,13 @@ Das \*\*Rahmenprogramm\*\* in C17 liest CLI-Parameter mit `getopt\_long` ein, pa
 
 
 
-\- Erfolgreicher ROM-Lesezugriff: ROM-Latenz + 3 Taktzyklen
+\- Erfolgreicher ROM-Lesezugriff: ROM-Latenz + 6 Taktzyklen
 
-\- Fehlerhafter ROM-Zugriff (Schreiben): 3 Taktzyklen
+\- Fehlerhafter ROM-Zugriff (Schreiben): 2 Taktzyklen
 
-\- Erfolgreicher Hauptspeicherzugriff: Hauptspeicher-Latenz + 7 Taktzyklen
+\- Erfolgreicher Hauptspeicherzugriff: Hauptspeicher-Latenz + 6 Taktzyklen
 
-\- Fehlerhafter Hauptspeicherzugriff: 3 Taktzyklen
+\- Fehlerhafter Hauptspeicherzugriff: 2 Taktzyklen
 
 
 
@@ -98,7 +98,7 @@ Das \*\*Rahmenprogramm\*\* in C17 liest CLI-Parameter mit `getopt\_long` ein, pa
 
 
 
-Das Projekt wurde mit C++14, C17 und SystemC 2.3.3 unter Windows WSL und Linux implementiert. Als Entwicklungsumgebung wurde VSCode verwendet. 
+Das Projekt wurde mit C++14, C17 und SystemC 2.3.3 unter Windows WSL und Linux implementiert. Als Entwicklungsumgebung wurde VSCode und VSCodium verwendet. 
 
 
 

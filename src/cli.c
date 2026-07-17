@@ -426,6 +426,10 @@ struct Parameters parse_cli(int argc, char** argv){
                     fprintf(stderr, "Invalid block size!\n");
                     exit(1);
                 }
+                if(block_size == 0){
+                    fprintf(stderr, "Block size can't be zero\n");
+                    exit(1);
+                }
                 break;
             }
             case 'C': {
@@ -439,14 +443,6 @@ struct Parameters parse_cli(int argc, char** argv){
                 exit(1);
         }
     }
-    //TODO: Create a tracefile if tf is set!!!   
-    //TODO: parse the requirements file!!!
-    if(romContent_path != NULL){
-        parameters.romContent = parseRom(romContent_path, rom_size);
-    }else{
-        parameters.romContent = (uint32_t*) calloc(rom_size / 4 > 0 ? rom_size / 4 : 1, sizeof(uint32_t));
-    }
-
     char *request_file;
     if(optind < argc){
         request_file = argv[optind];

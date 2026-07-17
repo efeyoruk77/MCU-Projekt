@@ -27,11 +27,11 @@ public:
 
     ReadOnlyMemory(sc_module_name name, uint32_t latency, uint32_t size, const uint32_t* data) : sc_module(name), latency(latency), size(size), memory(size/4), counter(0)
     {   
-        
-        for(uint32_t i = 0; i < (size / 4); i++){
-            memory[i] = data[i];
+        if(data != NULL){
+            for(uint32_t i = 0; i < (size / 4); i++){
+                    memory[i] = data[i];
+                }
         }
-
         SC_THREAD(readMethod);
         sensitive << clk.pos();
     }

@@ -98,7 +98,7 @@ Das \*\*Rahmenprogramm\*\* in C17 liest CLI-Parameter mit `getopt\_long` ein, pa
 
 
 
-Das Projekt wurde mit C++14, C17 und SystemC 2.3.3 unter Windows WSL und Linux implementiert. Als Entwicklungsumgebung wurde VSCode verwendet. Valgrind und der Address Sanitizer dienten zur Erkennung von Segmentation Faults und Memory Leaks.
+Das Projekt wurde mit C++14, C17 und SystemC 2.3.3 unter Windows WSL und Linux implementiert. Als Entwicklungsumgebung wurde VSCode verwendet. 
 
 
 

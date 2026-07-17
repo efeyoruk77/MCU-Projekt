@@ -110,7 +110,7 @@ struct Result runSimulation (
                 printf("Written data 0x%08X in address=0x%08X by user %u. (Current cycle: %u)\n", requests[i].data, requests[i].addr, requests[i].user, usedCycles);
             }
         }
-        
+
         if(error.read()){
             res.errors++;
         } else if(!requests[i].w){

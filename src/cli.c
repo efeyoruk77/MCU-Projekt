@@ -427,6 +427,10 @@ struct Parameters parse_cli(int argc, char** argv){
                     fprintf(stderr, "Invalid block size!\n");
                     exit(1);
                 }
+                if(block_size == 0){
+                    fprintf(stderr, "Block size can't be zero\n");
+                    exit(1);
+                }
                 break;
             }
             case 'C': {
